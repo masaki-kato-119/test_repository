@@ -1,1 +1,3 @@
-# test_repository
+# テスト用リポジトリ
+githubのcommitをトリガーをとし、ローカルのjenkinsジョブを実行させる
+
