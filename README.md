@@ -1,5 +1,8 @@
 # テスト用リポジトリ
-githubのcommitをトリガーをとし、ローカルのjenkinsジョブを実行させる
+## githubのcommitをトリガーにローカルのjenkinsジョブを実行させる
+・webhook
+・Actions
 
+## githubを定周期監視してローカルのjenkinsジョブを実行させる
+・定周期監視
 
-修正してみる
