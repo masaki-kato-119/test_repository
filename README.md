@@ -1,5 +1,5 @@
 # テスト用リポジトリ
-## githubのcommitをトリガーにローカルのjenkinsジョブを実行させる
+## githubのpushをトリガーにローカルのjenkinsジョブを実行させる
 ・webhook
 ・Actions
 
