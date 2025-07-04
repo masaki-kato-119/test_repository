@@ -1,8 +1,8 @@
 # テスト用リポジトリ
-## githubのpushをトリガーにローカルのjenkinsジョブを実行させる
-・webhook > テスト 1
-・Actions
 
-## githubを定期監視してローカルのjenkinsジョブを実行させる
-・定期監視
+- jenkinsのSCMポーリングを使って定期的にリポジトリを監視する
+- リポジトリ更新されていたらwindowsのbatファイルを実行する
+
+
+
 
