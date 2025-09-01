@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+disable=import-outside-toplevel
+
+[FORMAT]
+max-line-length=100

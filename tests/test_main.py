@@ -1,5 +1,4 @@
 """tests/test_main.py"""
-import pytest
 from src.main import add
 
 def test_add():
