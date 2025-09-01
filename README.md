@@ -30,11 +30,15 @@ test_repository/
 │   └── workflows/
 │       └── ci.yml      # ← GitHub Actionsのワークフロー定義
 ├── src/                # ← Pythonコード（例）
+│   ├── __init__.py
 │   └── main.py
 ├── tests/              # ← テストコード
+│   ├── __init__.py
 │   └── test_main.py
 ├── requirements.txt    # ← 依存パッケージ
 ├── README.md
+├── .pylintrc
+
 ```
 
 #### requirements.txt
@@ -71,16 +75,16 @@ jobs:
         pip install -r requirements.txt
 
     - name: Lint with pylint
-      run: pylint src tests
+      run: PYTHONPATH=. pylint src tests
 
     - name: Type check with mypy
-      run: mypy src
+      run: PYTHONPATH=. mypy src
 
     - name: Security check with bandit
       run: bandit -r src
 
     - name: Run tests
-      run: pytest tests
+      run: PYTHONPATH=. pytest tests
 ```
 
 ---
