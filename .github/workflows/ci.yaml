@@ -1,34 +1,134 @@
-name: Python CI
+# GitHub Actionsワークフローの名前
+name: Python CI/CD
 
+# ワークフローが実行されるトリガーを指定
 on:
+  # mainブランチ以外へのpush時 (開発ブランチでの作業中)
+  push:
+    branches-ignore:
+      - 'main'
+  # mainブランチへのPull Request時 (マージ前の最終チェック)
   pull_request:
-    branches: [ main ]
+    branches:
+      - 'main'
 
 jobs:
-  build:
+  # ===================================================================
+  # Job 1: Push時に変更ファイルのみを高速にLintチェックするジョブ
+  # 目的: 開発中の素早いフィードバック
+  # ===================================================================
+  lint_changed_files:
+    # このジョブが 'push' イベントの時だけ実行されるように指定
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
+      # 1. リポジトリのコードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # pushされたブランチのコミット履歴をすべて取得 (差分検出に必要)
+          fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      # 2. Python環境のセットアップ
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      # 3. 依存関係のキャッシュ
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-    - name: Lint with pylint
-      run: PYTHONPATH=. pylint src tests
+      # 4. 依存関係のインストール
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Type check with mypy
-      run: PYTHONPATH=. mypy src
+      # 5. 変更があったPythonファイルの一覧を取得
+      - name: Get changed Python files
+        id: changed_py_files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.py
 
-    - name: Security check with bandit
-      run: bandit -r src
+      # 6. 変更ファイルのみをLintチェック (堅牢な方法で実行)
+      - name: Lint changed files safely
+        # Pythonファイルに変更があった場合のみ実行
+        if: steps.changed_py_files.outputs.any_changed == 'true'
+        run: |
+          echo "Linting files: ${{ steps.changed_py_files.outputs.all_changed_files }}"
+          # 多数のファイルが変更されてもコマンド長エラーにならないようxargsを使用
+          # プロジェクト内モジュールのimportを解決するため `sh -c` を経由してPYTHONPATHを設定
+          echo "${{ steps.changed_py_files.outputs.all_changed_files }}" | tr ' ' '\n' | \
+            xargs -n 50 sh -c 'PYTHONPATH=. pylint "$@"' --
 
-    - name: Run tests
-      run: PYTHONPATH=. pytest tests
+  # ===================================================================
+  # Job 2: Pull Request時に網羅的な品質チェックを実行するジョブ
+  # 目的: mainブランチを保護する徹底的な品質ゲート
+  # ===================================================================
+  full_checks:
+    # このジョブが 'pull_request' イベントの時だけ実行されるように指定
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # 1. リポジトリのコードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Python環境のセットアップ
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 3. 依存関係のキャッシュ
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4. 依存関係のインストール (pytest-covも含む)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 5. Lintチェック
+      - name: Lint with pylint
+        run: PYTHONPATH=. pylint src tests
+
+      # 6. 型チェック
+      - name: Type check with mypy
+        run: PYTHONPATH=. mypy src
+
+      # 7. セキュリティスキャン
+      - name: Security check with bandit
+        run: bandit -r src
+
+      # 8. テスト実行 & カバレッジレポート生成
+      - name: Run tests and generate coverage
+        run: |
+          PYTHONPATH=. pytest \
+            --cov=src \
+            --cov-report=html \
+            --maxfail=1 \
+            tests
+
+      # 9. カバレッジレポートをアーティファクトとしてアップロード
+      - name: Upload coverage report
+        # 以前のステップがすべて成功した場合のみ実行
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          # アーティファクトの名前
+          name: coverage-report-html
+          # アップロードするディレクトリ
+          path: htmlcov
