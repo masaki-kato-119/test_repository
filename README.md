@@ -1,5 +1,8 @@
 # テスト用リポジトリ
 
+[![CI](https://github.com/masaki-kato-119/test_repository/actions/workflows/ci.yaml/badge.svg)](https://github.com/masaki-kato-119/test_repository/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/masaki-kato-119/test_repository/branch/main/graph/badge.svg)](https://codecov.io/gh/masaki-kato-119/test_repository)
+
 このリポジトリはCIワークフローのテストを記録するものです。
 検討はGitHub Copilotを使っています。
 
@@ -9,6 +12,7 @@
 - [テスト用リポジトリ](#テスト用リポジトリ)
   - [目次](#目次)
   - [CI/CDパイプライン](#cicdパイプライン)
+  - [バッジについて](#バッジについて)
     - [ツールの選定](#ツールの選定)
       - [ディレクトリ・ファイル構成](#ディレクトリファイル構成)
       - [requirements.txt](#requirementstxt)
@@ -31,6 +35,16 @@
 本リポジトリのCI/CDパイプラインは2段階構成です。
 - **push時（main以外）**: 変更のあったPythonファイルのみをpylintでLintし、素早いフィードバックを得ます。
  **Pull Request時（main向け）**: コード全体に対してpylint, mypy, bandit, pytest（カバレッジ付き）を実行し、mainブランチの品質を担保します。
+
+## バッジについて
+
+- ![CIバッジ](https://github.com/masaki-kato-119/test_repository/actions/workflows/ci.yaml/badge.svg)  
+  GitHub ActionsによるCI（継続的インテグレーション）の実行結果を示します。  
+  mainブランチやPull RequestでCIが成功しているか一目で分かります。
+
+- ![カバレッジバッジ](https://codecov.io/gh/masaki-kato-119/test_repository/branch/main/graph/badge.svg)
+  テストカバレッジ（テストがどれだけコードを網羅しているか）を示します。  
+  Codecov等の外部サービスと連携することで自動表示されます。
 
 ### ツールの選定
 
@@ -277,6 +291,14 @@ GitHub Flowのブランチ名の例
 - スラッシュ区切りが主流（例: feature/xxx）
 - 英語・小文字・ハイフン区切りが一般的
 - チケット番号や課題番号を含めてもOK（例: fix/1234-login-error）
+
+運用ルール（GitHub Flow）
+- mainブランチへの直接pushは禁止です。
+- 必ずfeature/fix/hotfix等のブランチで作業し、Pull Request（PR）を作成してください。
+- PR作成時にCIが自動で実行されます。
+- **PRのマージは必ず人によるレビュー・承認を経て行います（自動マージは禁止）**。
+- mainブランチは常にCIが通った状態を保ちます。
+- ブランチ保護ルールにより、PR経由・CI成功・レビュー必須が強制されます。
 
 ---
 ## これまでの構築・運用過程まとめ
